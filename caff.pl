@@ -79,8 +79,11 @@ sub enable_caffeinate($) {
 
 sub cancel_caffeinate() {
     # TODO: Kill asserting caffeinate job that we launched
+    if (not $active_sleep) {
+        return "No active caffeinate jobs.\n";
+    }
     return "Cancelling existing caffeinate job. ",
-          "(Had $active_sleep remaining.)";
+          "(Had $active_sleep remaining.)\n";
 }
 
 #
@@ -107,10 +110,10 @@ my $items = [
 
 my $arg = shift;
 if ($arg) {
-    if ($arg =~ /^enable\s+(.+)/) {
-        print enable_caffeinate($1);
+    if ($arg eq 'enable') {
+        print enable_caffeinate(shift);
         exit 0;
-    } elsif ($arg =~ /^cancel/) {
+    } elsif ($arg eq 'cancel') {
         print cancel_caffeinate;
         exit 0;
     }
