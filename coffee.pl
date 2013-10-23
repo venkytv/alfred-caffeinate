@@ -5,11 +5,16 @@ use warnings;
 
 use FindBin;
 use Storable qw( lock_nstore lock_retrieve );
+use Time::Duration;
 
-my $CAFFEINATE_FLAGS = 'is';
+my $CAFFEINATE_FLAGS = '-is';
 
 my $active_sleep = 0;
+my $caffeine_pid = 0;
 my $cache = 'intervals.cache';
+my $default_icon = 'coffee.png';
+my $cancel_icon = 'decaf.png';
+my $pidfile = 'coffee.pid';
 my @defaults = qw( 15m 1h 5h );
 my %intervals = ();
 
@@ -26,6 +31,7 @@ HEAD
         my $title = $item->{title};
         my $subtitle = $item->{subtitle};
         my $cancellable = $item->{cancellable};
+        my $icon = $item->{icon} || $default_icon;
 
         if ($active_sleep and $cancellable) {
             $title =~ s/^(.)/Cancel existing and \L$1/;
@@ -45,6 +51,7 @@ HEAD
           valid="$valid">
         <title>$title</title>
         <subtitle>$subtitle</subtitle>
+        <icon>$icon</icon>
     </item>
 ITEM
     }
@@ -56,10 +63,49 @@ FOOT
     return $xml;
 }
 
+sub get_caffeinate_pid() {
+    return 0 if not -f $pidfile;
+    if (not open(PIDFILE, $pidfile)) {
+        unlink $pidfile;
+        return 0;
+    }
+    chomp (my $pid = <PIDFILE>);
+    close PIDFILE;
+
+    if ($pid and $pid =~ /^\d+$/) {
+        return $pid;
+    }
+    return 0;
+}
+
+sub get_timeout($) {
+    my $pid = shift;
+    open(PMSET, "pmset -g assertions |") or die "Unable to run pmset";
+    my $timeout = -1;
+    while (<PMSET>) {
+        next if not /^\s*pid $pid\(caffeinate\):/;
+        <PMSET>; <PMSET>;
+        if (<PMSET> =~ /Timeout will fire in (\d+) secs/) {
+            $timeout = $1;
+        }
+        last;
+    }
+    close PMSET;
+    if ($timeout < 0) {
+        # Invalid pidfile
+        unlink $pidfile;
+    }
+    return $timeout;
+}
+
 sub check_existing_caffeinate_task() {
-    # TODO: Retrieve existing caffeinate task and timeout duration
-    #       from 'pmset -g assertions'
-    return (int(rand(3)) ? '10 minutes' : 0);
+    my $pid = get_caffeinate_pid;
+    return 0 if not $pid;
+
+    my $timeout = get_timeout($pid);
+    return 0 if $timeout < 0;
+
+    return ($pid, duration($timeout) . ' more');
 }
 
 sub enable_caffeinate($) {
@@ -88,17 +134,29 @@ sub enable_caffeinate($) {
     $dur *= 60 if $unit eq 'h';
     $dur *= 60;
 
-    # TODO: Launch caffeinate here
+    my $pid = fork();
+    if ($pid == 0) {
+        # Child
+        close STDIN;
+        close STDOUT;
+        close STDERR;
+        exec ('/usr/bin/caffeinate', $CAFFEINATE_FLAGS, '-t', $dur);
+    }
+    open(PIDFILE, '>', $pidfile) or die "Unable to write to file: $pidfile";
+    print PIDFILE "$pid\n";
+    close PIDFILE;
 
-    return "Enabling caffeinate for $dur_h $unit_h ($dur seconds)\n";
+    return "Enabling caffeinate for $dur_h $unit_h\n";
 }
 
 sub cancel_caffeinate() {
-    # TODO: Kill asserting caffeinate job that we launched
     if (not $active_sleep) {
         return "No active caffeinate jobs.\n";
     }
-    return "Cancelling existing caffeinate job. ",
+    if (kill('TERM', $caffeine_pid)) {
+        unlink $pidfile;
+    }
+    return "Cancelled existing caffeinate job. ",
           "(Had $active_sleep remaining.)\n";
 }
 
@@ -140,7 +198,7 @@ sub get_intervals() {
 #
 chdir $FindBin::Bin or die "Failed to cd to work directory: $!\n";
 
-$active_sleep = check_existing_caffeinate_task;
+($caffeine_pid, $active_sleep) = check_existing_caffeinate_task;
 
 my $items = get_intervals();
 
@@ -173,8 +231,9 @@ if ($arg) {
 } elsif ($active_sleep) {
     unshift(@$items, {
             title => "Cancel existing caffeinate task",
-            subtitle => "Preventing sleep for $active_sleep",
+            subtitle => "Currently preventing sleep for $active_sleep",
             arg => 'cancel',
+            icon => $cancel_icon,
         });
 }
 
