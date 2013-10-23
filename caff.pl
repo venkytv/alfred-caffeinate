@@ -3,9 +3,15 @@
 use strict;
 use warnings;
 
+use FindBin;
+use Storable qw( lock_nstore lock_retrieve );
+
 my $CAFFEINATE_FLAGS = 'is';
 
 my $active_sleep = 0;
+my $cache = 'intervals.cache';
+my @defaults = qw( 15m 1h 5h );
+my %intervals = ();
 
 # Hand-crafted XML! I know, sorry!
 # Don't want dependencies for something as simple as this.
@@ -57,14 +63,24 @@ sub check_existing_caffeinate_task() {
 }
 
 sub enable_caffeinate($) {
-    # TODO: Store duration ($_[0]) in frequently used interval cache
+    my $str = shift;
 
-    cancel_caffeinate() if $active_sleep;
-
-    my ($dur, $unit) = $_[0] =~ /(\d+)([hm])/;
+    my ($dur, $unit) = $str =~ /(\d+)([hm])/;
     if (not $dur or not $unit) {
         return "ERROR enabling caffeinate\n";
     }
+
+    # Store duration in frequently used interval cache
+    my $i = (-f $cache ? lock_retrieve($cache) : get_times());
+    if (exists $i->{$str}) {
+        $i->{$str}++;
+    } else {
+        $i->{$str} = scalar @defaults + 1;
+    }
+    lock_nstore($i, $cache);
+
+    cancel_caffeinate() if $active_sleep;
+
     my $dur_h = $dur;
     my $unit_h = ($unit eq 'h' ? 'hour' : 'minute');
     $unit_h .= 's' if $dur_h != 1;
@@ -86,27 +102,47 @@ sub cancel_caffeinate() {
           "(Had $active_sleep remaining.)\n";
 }
 
+sub get_times() {
+    my $t;
+    if (not -f $cache) {
+        my $count = scalar @defaults;
+        %$t = map { $_ => $count-- } @defaults;
+    } else {
+        $t = lock_retrieve($cache);
+    }
+    return $t;
+}
+
+sub get_intervals() {
+    my @items;
+    my $t = get_times;
+    my @times = sort { $t->{$b} <=> $t->{$a} } keys %$t;
+    @times = @times[0..8] if @times > 9;
+
+    foreach my $time (@times) {
+        my ($dur, $unit) = $time =~ /(\d+)([hm])/;
+        my $str = ($unit eq 'h' ? 'hour' : 'minute');
+        $str .= 's' if $dur != 1;
+        $str = "$dur $str";
+
+        push(@items, {
+                arg => "enable $time",
+                title => "Prevent sleep for $str",
+                subtitle => "Activate caffeinate for $str",
+                cancellable => 1,
+            });
+    }
+    return \@items;
+}
+
 #
 # MAIN
 #
+chdir $FindBin::Bin or die "Failed to cd to work directory: $!\n";
+
 $active_sleep = check_existing_caffeinate_task;
 
-# TODO: Load frequently used intervals from cache
-#       Order by frequency
-my $items = [
-        {
-            arg => 'enable 1h',
-            title => 'Prevent sleep for 1 hour',
-            subtitle => 'Activate caffeinate for 1 hour',
-            cancellable => 1,
-        },
-        {
-            arg => 'enable 15m',
-            title => 'Prevent sleep for 15 minutes',
-            subtitle => 'Activate caffeinate for 15 minutes',
-            cancellable => 1,
-        },
-    ];
+my $items = get_intervals();
 
 my $arg = shift;
 if ($arg) {
