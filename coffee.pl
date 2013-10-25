@@ -5,7 +5,15 @@ use warnings;
 
 use FindBin;
 use Storable qw( lock_nstore lock_retrieve );
-use Time::Duration;
+
+eval {
+    require Time::Duration;
+    *duration = \&Time::Duration::duration;
+};
+if ($@) {
+    require Time::Seconds;
+    *duration = sub { my $t = Time::Seconds->new($_[0]); return $t->pretty; };
+}
 
 my $CAFFEINATE_FLAGS = '-is';
 
