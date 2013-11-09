@@ -187,7 +187,8 @@ sub enable_caffeinate($) {
         close STDIN;
         close STDOUT;
         close STDERR;
-        exec ('/usr/bin/caffeinate', $CAFFEINATE_FLAGS, '-t', $dur);
+        my @flags = split(' ', $CAFFEINATE_FLAGS);
+        exec ('/usr/bin/caffeinate', @flags, '-t', $dur);
     }
     open(PIDFILE, '>', $pidfile) or die "Unable to write to file: $pidfile";
     print PIDFILE "$pid\n";
