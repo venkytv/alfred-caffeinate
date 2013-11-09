@@ -17,6 +17,8 @@ if ($@) {
 
 my $CAFFEINATE_FLAGS = '-is';
 
+my $conffile = $ENV{HOME} . '/.alfred-caffeinate.conf';
+my %config = ();
 my $active_sleep = 0;
 my $caffeine_pid = 0;
 my $cache = 'intervals.cache';
@@ -69,6 +71,43 @@ ITEM
 FOOT
 
     return $xml;
+}
+
+sub create_conf() {
+    if (! -f $conffile) {
+        if (not open(CONF, '>', $conffile)) {
+            print "Error creating config file: $conffile\n";
+            exit 2;
+        }
+        print CONF <<EOF;
+##                                    ##
+## ALFRED-CAFFEINATE.CONF:VERSION=1.0 ##
+##                                    ##
+
+# Default "caffeinate" flags: $CAFFEINATE_FLAGS
+
+# Uncomment the following line to prevent display sleep too
+#CAFFEINATE_FLAGS=-ids
+
+# Or choose your own flags. Have a look at the 'caffeinate' manual page
+# for the list of valid options.
+EOF
+        close CONF;
+    }
+
+    print "Config file: $conffile .  \nEdit this file to configure ",
+          "the workflow\n";
+    system("open -a /Applications/TextEdit.app $conffile");
+}
+
+sub load_conf() {
+    return if not -f $conffile;
+    open(CONF, $conffile) or return;
+    while (<CONF>) {
+        next if not /^\s*(\w+?)\s*=\s*(.+?)\s*$/;
+        $config{$1} = $2;
+    }
+    close CONF;
 }
 
 sub get_caffeinate_pid() {
@@ -206,6 +245,10 @@ sub get_intervals() {
 #
 chdir $FindBin::Bin or die "Failed to cd to work directory: $!\n";
 
+load_conf;
+$CAFFEINATE_FLAGS = $config{CAFFEINATE_FLAGS}
+    if exists $config{CAFFEINATE_FLAGS};
+
 ($caffeine_pid, $active_sleep) = check_existing_caffeinate_task;
 
 my $items = get_intervals();
@@ -217,6 +260,16 @@ if ($arg) {
         exit 0;
     } elsif ($arg eq 'cancel') {
         print cancel_caffeinate;
+        exit 0;
+    } elsif ($arg =~ /^conf/) {
+        print genfeedback([{
+                title => 'Configure the workflow',
+                subtitle => "Open config file: $conffile",
+                arg => '--do-configure',
+            }]);
+        exit 0;
+    } elsif ($arg eq '--do-configure') {
+        print create_conf;
         exit 0;
     }
 
