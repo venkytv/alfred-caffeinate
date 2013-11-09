@@ -8,4 +8,4 @@ Control the Mac's sleep prevention setup.
   "25 minutes".
 - You can also cancel or reschedule running caffeinate tasks.
 
-You can download the [latest version here](https://github.com/venkytv/alfred-caffeinate/blob/master/Alfred-Coffee.alfredworkflow).
+You can download the [latest version here](https://github.com/venkytv/alfred-caffeinate/raw/master/Alfred-Coffee.alfredworkflow).
