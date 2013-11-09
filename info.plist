@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.duh-uh.coffee</string>
+	<key>connections</key>
+	<dict>
+		<key>68EF2C82-2E77-443B-B562-63F36550690E</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>4A2F7D8E-5239-4973-847B-44DE9D11192D</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+			</dict>
+		</array>
+		<key>EE620B09-FD6F-4626-AF43-718D5B9AE9E0</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>68EF2C82-2E77-443B-B562-63F36550690E</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>Venky TV</string>
+	<key>description</key>
+	<string>Caffeinate the Mac</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Coffee</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>127</integer>
+				<key>keyword</key>
+				<string>coffee</string>
+				<key>script</key>
+				<string>perl coffee.pl {query}</string>
+				<key>subtext</key>
+				<string>Prevent the Mac from sleeping</string>
+				<key>title</key>
+				<string>Caffeinate the Mac</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>EE620B09-FD6F-4626-AF43-718D5B9AE9E0</string>
+			<key>version</key>
+			<integer>0</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>lastpathcomponent</key>
+				<false/>
+				<key>onlyshowifquerypopulated</key>
+				<false/>
+				<key>output</key>
+				<integer>0</integer>
+				<key>removeextension</key>
+				<false/>
+				<key>sticky</key>
+				<false/>
+				<key>text</key>
+				<string>{query}</string>
+				<key>title</key>
+				<string>{query}</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.notification</string>
+			<key>uid</key>
+			<string>4A2F7D8E-5239-4973-847B-44DE9D11192D</string>
+			<key>version</key>
+			<integer>0</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>escaping</key>
+				<integer>126</integer>
+				<key>script</key>
+				<string>perl coffee.pl {query}</string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>68EF2C82-2E77-443B-B562-63F36550690E</string>
+			<key>version</key>
+			<integer>0</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string>Prevent the Mac from going to sleep for a conferrable amount of time.
+
+Icon from http://openclipart.org/detail/3741/espresso-by-pipo</string>
+	<key>uidata</key>
+	<dict>
+		<key>4A2F7D8E-5239-4973-847B-44DE9D11192D</key>
+		<dict>
+			<key>ypos</key>
+			<real>10</real>
+		</dict>
+		<key>68EF2C82-2E77-443B-B562-63F36550690E</key>
+		<dict>
+			<key>ypos</key>
+			<real>10</real>
+		</dict>
+		<key>EE620B09-FD6F-4626-AF43-718D5B9AE9E0</key>
+		<dict>
+			<key>ypos</key>
+			<real>10</real>
+		</dict>
+	</dict>
+	<key>webaddress</key>
+	<string></string>
+</dict>
+</plist>
