@@ -8,4 +8,7 @@ Control the Mac's sleep prevention setup.
   "25 minutes".
 - You can also cancel or reschedule running caffeinate tasks.
 
+There is some primitive support for configuration of the caffeinate(8) flags.
+Type "coffee conf" to open the config file.
+
 You can download the [latest version here](https://github.com/venkytv/alfred-caffeinate/raw/master/Alfred-Coffee.alfredworkflow).
