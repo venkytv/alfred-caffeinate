@@ -7,3 +7,5 @@ Control the Mac's sleep prevention setup.
 - Can use used to choose custom caffeinate intervals.  For example, "2h", "45m",
   "25 minutes".
 - You can also cancel or reschedule running caffeinate tasks.
+
+You can download the [latest version here](https://github.com/venkytv/alfred-caffeinate/blob/master/Alfred-Coffee.alfredworkflow).
