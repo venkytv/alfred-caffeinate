@@ -254,6 +254,9 @@ $CAFFEINATE_FLAGS = $config{CAFFEINATE_FLAGS}
 my $items = get_intervals();
 
 my $arg = shift;
+$arg =~ s/^\s*//;
+$arg =~ s/\s*$//;
+
 if ($arg) {
     if ($arg eq 'enable') {
         print enable_caffeinate(shift);
